@@ -1,0 +1,2 @@
+# StockSense Backend Dependencies
+# The backend uses Python 3 standard libraries (urllib, http.server, sqlite3, smtplib, etc.)

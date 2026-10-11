@@ -1,0 +1,7 @@
+backend/__pycache__/
+*.pyc
+data/*.log
+data/*.sqlite3
+data/reports/*.html
+data/reports/*.csv
+.env

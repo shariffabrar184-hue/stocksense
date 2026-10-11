@@ -1,0 +1,2 @@
+# yfinance is required for real-time stock price fetching.
+yfinance>=0.2.0
