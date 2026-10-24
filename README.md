@@ -26,14 +26,14 @@ Open:
 http://127.0.0.1:8000
 ```
 
-## Demo Logins
+## Logins
 
-- Admin: `admin` / `admin123`
+- Admin: `admin` or `abrar` / `Tasneem@2802` (Name: Abrar shariff)
 - Employee: `analyst` / `emp123`
 - User: `john` / `user123`
 - User: `priya` / `user123`
 
-You can also login with the user's email address instead of username. On every successful login the backend sends a login notification to that account email. If SMTP is not configured, the message is saved to `data/email_outbox.log`.
+You can also login with the account's email address or full name instead of username. On every successful login the backend sends a login notification to that account email. If SMTP is not configured, the message is saved to `data/email_outbox.log`.
 
 ## Real Email Setup
 

@@ -5,6 +5,7 @@ import csv
 import hashlib
 import hmac
 import json
+import mimetypes
 import os
 import secrets
 import smtplib
@@ -13,6 +14,13 @@ import threading
 import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
+
+# Ensure standard web MIME types are recognized in all host environments
+mimetypes.init()
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/svg+xml", ".svg")
+mimetypes.add_type("application/json", ".json")
 from email.message import EmailMessage
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -333,12 +341,26 @@ def init_db() -> None:
             );
             """
         )
-        seed_user(conn, "admin", "admin123", "Administrator", "shariffabrar433@gmail.com", "admin")
+        # Seed default accounts
+        admin_pass = os.environ.get("ADMIN_PASSWORD", "Tasneem@2802")
+        seed_user(conn, "admin", admin_pass, "Abrar shariff", "shariffabrar433@gmail.com", "admin")
+        seed_user(conn, "abrar", admin_pass, "Abrar shariff", "shariffabrar184@gmail.com", "admin")
         seed_user(conn, "analyst", "emp123", "Analyst Kumar", "analyst@stocksense.in", "employee")
         seed_user(conn, "john", "user123", "John Doe", "john@example.com", "user")
         seed_user(conn, "priya", "user123", "Priya Sharma", "priya@example.com", "user")
-        # Migrate: ensure admin email points to real Gmail for login notifications
+
+        # Automatically update any existing admin or abrar accounts to ensure credentials match
+        admin_hash = hash_password(admin_pass)
+        conn.execute(
+            """
+            UPDATE users 
+            SET name = 'Abrar shariff', password_hash = ?, role = 'admin'
+            WHERE username IN ('admin', 'abrar') OR lower(name) = 'abrar shariff'
+            """,
+            (admin_hash,),
+        )
         conn.execute("UPDATE OR IGNORE users SET email = ? WHERE username = 'admin'", ("shariffabrar433@gmail.com",))
+        conn.execute("UPDATE OR IGNORE users SET email = ? WHERE username = 'abrar'", ("shariffabrar184@gmail.com",))
         seed_stocks(conn)
 
 
@@ -683,18 +705,26 @@ class Handler(SimpleHTTPRequestHandler):
         data = self.read_json()
         login_value = (data.get("login") or data.get("username") or "").strip().lower()
         password = data.get("password") or ""
-        role = data.get("role") or "user"
+        preferred_role = data.get("role") or "user"
         with db() as conn:
+            # Look for matching account by username, email, or full name (case-insensitive)
+            # If multiple matching accounts exist, prioritize the requested role
             row = conn.execute(
-                "SELECT * FROM users WHERE lower(username) = ? OR lower(email) = ?",
-                (login_value, login_value),
+                """
+                SELECT * FROM users 
+                WHERE lower(username) = ? OR lower(email) = ? OR lower(name) = ?
+                ORDER BY CASE WHEN role = ? THEN 0 ELSE 1 END
+                LIMIT 1
+                """,
+                (login_value, login_value, login_value, preferred_role),
             ).fetchone()
+
             if not row or not verify_password(password, row["password_hash"]):
                 return self.error("Incorrect username/email or password.", HTTPStatus.UNAUTHORIZED)
-            if row["role"] != role:
-                return self.error(f'This account is registered as "{row["role"]}", not "{role}".')
+
             token = create_session(conn, row["id"])
             user = clean_user(row)
+            actual_role = user.get("role", "user")
             
             # Send login email in the background to avoid blocking the fast login response
             ip_addr = self.client_address[0]
@@ -704,7 +734,7 @@ class Handler(SimpleHTTPRequestHandler):
             threading.Thread(target=_bg_email, daemon=True).start()
             email_status = "queued"
             
-            log_activity(conn, f'User "{user["name"]}" ({role}) logged in', user["name"])
+            log_activity(conn, f'User "{user["name"]}" ({actual_role}) logged in', user["name"])
         self.json({"token": token, "user": user, "email_status": email_status, "tables": all_tables()})
 
     def insert(self, table: str) -> None:

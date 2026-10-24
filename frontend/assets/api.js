@@ -1,13 +1,20 @@
 const StockSenseAPI = {
   token: localStorage.getItem('stocksense_token') || '',
 
-  // Automatically point to the Python backend at port 8000.
-  // When served directly from the backend (port 8000), API_BASE is empty (relative URLs).
-  // When the page is opened via file:// or a different port (e.g. VS Code Live Server on 5500),
-  // we route all API calls to the backend explicitly.
-  API_BASE: (location.protocol === 'file:' || location.port !== '8000')
-    ? 'http://127.0.0.1:8000'
-    : '',
+  // If running directly on a deployed domain (Render, cloud, etc.) or when served by backend,
+  // use relative API paths (''). Only route to localhost:8000 if opened directly via file://
+  // or from a local live-reload dev server (e.g. port 5500).
+  API_BASE: (function() {
+    if (typeof location === 'undefined') return '';
+    if (location.protocol === 'file:') return 'http://127.0.0.1:8000';
+    const host = location.hostname || '';
+    const isLocalhost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(host);
+    const port = location.port || '';
+    if (isLocalhost && port && port !== '8000' && port !== '10000') {
+      return 'http://127.0.0.1:8000';
+    }
+    return '';
+  })(),
 
   setToken(token) {
     this.token = token || '';

@@ -45,8 +45,8 @@
     <!-- LOGIN PANEL -->
     <div id="panel-login">
       <div class="fg">
-        <label id="lu-label">Username</label>
-        <input id="lu" placeholder="Enter your username" autocomplete="off" style="width:100%">
+        <label id="lu-label">Username / Email</label>
+        <input id="lu" placeholder="Enter username, email, or name" autocomplete="off" style="width:100%">
       </div>
       <div class="fg">
         <label>Password</label>
@@ -60,17 +60,9 @@
           <option value="admin">🔐 Admin</option>
         </select>
       </div>
-      <div id="admin-note" style="display:none;margin-bottom:12px;padding:9px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:var(--r);font-size:11px;color:#fca5a5">
-        🔐 Admin: username <strong>admin</strong> · password <strong>admin123</strong>
-      </div>
       <div id="lerr" style="display:none;color:#fca5a5;font-size:12px;margin-bottom:10px;padding:8px 12px;background:rgba(248,113,113,.08);border-radius:var(--r);border:1px solid rgba(248,113,113,.2)"></div>
       <button class="btn bfull" onclick="doLogin()" style="font-size:14px;font-weight:700;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a0800;padding:12px;box-shadow:0 6px 28px rgba(251,191,36,0.35);border:none;letter-spacing:.03em">🚀 Sign In to StockSense</button>
       <div style="text-align:center;margin-top:14px;font-size:12px;color:#475569">New here? <span style="color:#fbbf24;cursor:pointer;font-weight:600" onclick="switchAuthTab('register')">Create an account →</span></div>
-
-      <div class="demo-box" style="margin-top:16px">
-        <div class="demo-t">⚡ Quick Demo Access</div>
-        <div class="demo-row"><span class="dr">🔐 Admin</span><span class="dc">admin / admin123</span><button class="demo-btn" onclick="fd('admin','admin123','admin')">Use</button></div>
-      </div>
     </div>
 
     <!-- REGISTER PANEL -->

@@ -20,9 +20,10 @@ const DB = {
     } catch (e) {
       console.error('Backend bootstrap failed', e);
       this.tables.users = [
-        { id: 1, username: 'admin', name: 'Administrator', email: 'admin@stocksense.in', role: 'admin', joined: new Date().toISOString().split('T')[0] },
-        { id: 2, username: 'analyst', name: 'Analyst Kumar', email: 'analyst@stocksense.in', role: 'employee', joined: new Date().toISOString().split('T')[0] },
-        { id: 3, username: 'john', name: 'John Doe', email: 'john@example.com', role: 'user', joined: new Date().toISOString().split('T')[0] }
+        { id: 1, username: 'admin', name: 'Abrar shariff', email: 'shariffabrar433@gmail.com', role: 'admin', joined: new Date().toISOString().split('T')[0] },
+        { id: 2, username: 'abrar', name: 'Abrar shariff', email: 'shariffabrar184@gmail.com', role: 'admin', joined: new Date().toISOString().split('T')[0] },
+        { id: 3, username: 'analyst', name: 'Analyst Kumar', email: 'analyst@stocksense.in', role: 'employee', joined: new Date().toISOString().split('T')[0] },
+        { id: 4, username: 'john', name: 'John Doe', email: 'john@example.com', role: 'user', joined: new Date().toISOString().split('T')[0] }
       ];
       log('Backend offline — temporary frontend data loaded');
     }
@@ -1208,9 +1209,9 @@ function switchAuthTab(tab) {
 function onRoleChange() {
   const r = document.getElementById('lr').value;
   const lbl = document.getElementById('lu-label');
+  if (lbl) lbl.textContent = r === 'admin' ? 'Admin Username / Email' : 'Username / Email';
   const note = document.getElementById('admin-note');
-  if (lbl) lbl.textContent = r === 'admin' ? 'Admin Username' : 'Username';
-  if (note) note.style.display = r === 'admin' ? 'block' : 'none';
+  if (note) note.style.display = 'none';
 }
 
 function fd(u, p, r) {
@@ -1344,29 +1345,39 @@ async function doLogin() {
       btn.disabled = false;
       btn.style.opacity = '1';
     }
-    err.textContent = e.message || 'Login failed. Please check your details.';
+    const msg = e && e.message ? e.message : '';
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+      err.textContent = 'Backend connection error. If using free cloud hosting (Render), it may take ~45 seconds to spin up on first request — please wait a moment and try again.';
+    } else {
+      err.textContent = msg || 'Login failed. Please check your details.';
+    }
     err.style.display = 'block';
     return;
   }
 
-  cRole = user.role || r; cUser = user.name || u; cUserId = user.id;
+  cRole = user.role || r || 'user';
+  cUser = user.name || u;
+  cUserId = user.id;
 
   const rb = document.getElementById('rbadge');
-  rb.textContent = r[0].toUpperCase() + r.slice(1);
-  rb.className = 'role-badge ' + (r === 'admin' ? 'rb-admin' : r === 'employee' ? 'rb-emp' : 'rb-user');
-  document.getElementById('sbuser').textContent = cUser;
-  document.getElementById('tbav').textContent = cUser[0].toUpperCase();
-  document.getElementById('tbusr').textContent = cUser;
-  document.getElementById('pav').textContent = cUser[0].toUpperCase();
-  document.getElementById('pname').textContent = cUser;
-  document.getElementById('prole').textContent = r[0].toUpperCase() + r.slice(1);
-  document.getElementById('pn2').value = cUser;
-  document.getElementById('pem').value = user.email;
+  if (rb) {
+    rb.textContent = cRole[0].toUpperCase() + cRole.slice(1);
+    rb.className = 'role-badge ' + (cRole === 'admin' ? 'rb-admin' : cRole === 'employee' ? 'rb-emp' : 'rb-user');
+  }
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('sbuser', cUser);
+  setTxt('tbav', cUser[0].toUpperCase());
+  setTxt('tbusr', cUser);
+  setTxt('pav', cUser[0].toUpperCase());
+  setTxt('pname', cUser);
+  setTxt('prole', cRole[0].toUpperCase() + cRole.slice(1));
+  const pn2 = document.getElementById('pn2'); if (pn2) pn2.value = cUser;
+  const pem = document.getElementById('pem'); if (pem) pem.value = user.email || '';
 
-  document.getElementById('mn-emp').style.display = r !== 'user' ? 'block' : 'none';
-  document.getElementById('mn-adm').style.display = r === 'admin' ? 'block' : 'none';
+  const mnEmp = document.getElementById('mn-emp'); if (mnEmp) mnEmp.style.display = cRole !== 'user' ? 'block' : 'none';
+  const mnAdm = document.getElementById('mn-adm'); if (mnAdm) mnAdm.style.display = cRole === 'admin' ? 'block' : 'none';
 
-  log(`User "${cUser}" (${r}) logged in`);
+  log(`User "${cUser}" (${cRole}) logged in`);
 
   // INSTANT TRANSITION: Hide login page and show dashboard perfectly rendered immediately
   document.getElementById('login-page').style.display = 'none';
